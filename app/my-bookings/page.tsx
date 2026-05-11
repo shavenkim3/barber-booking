@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -8,6 +9,7 @@ import {
   Phone,
   Scissors,
   UserRound,
+  Trash2,
 } from "lucide-react";
 
 import Navbar from "../components/Navbar";
@@ -41,6 +43,7 @@ export default function MyBookingsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -64,9 +67,47 @@ export default function MyBookingsPage() {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    setLoading(false);
+  async function handleCancelBooking(bookingId: string) {
+    const confirmCancel = confirm("คุณต้องการยกเลิกการจองนี้ใช่ไหม?");
+
+    if (!confirmCancel) return;
+
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "cancelled",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.message || "ยกเลิกการจองไม่สำเร็จ");
+        return;
+      }
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === bookingId
+            ? { ...booking, status: "cancelled" }
+            : booking
+        )
+      );
+
+      setMessage("ยกเลิกการจองสำเร็จ");
+    } catch (error) {
+      console.log(error);
+      setMessage("เกิดข้อผิดพลาดในการยกเลิกการจอง");
+    }
   }
 
   function getStatusText(status: Booking["status"]) {
@@ -103,7 +144,7 @@ export default function MyBookingsPage() {
     <main className="min-h-screen bg-stone-50">
       <Navbar />
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-stone-50 to-amber-50/40 px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
+      <section className="bg-gradient-to-b from-white via-stone-50 to-amber-50/40 px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10">
             <span className="inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-800">
@@ -111,17 +152,26 @@ export default function MyBookingsPage() {
             </span>
 
             <h1 className="mt-5 text-4xl font-bold tracking-tight text-stone-950 sm:text-5xl">
-              ประวัติการจองของฉัน
+              การจองของฉัน
             </h1>
 
             <p className="mt-4 max-w-2xl text-stone-600">
-              ดูรายการจองคิวร้านตัดผมทั้งหมดของคุณ พร้อมสถานะการจอง
+              ดูรายละเอียดการจองคิวของคุณ พร้อมสถานะ วันที่ เวลา และช่างตัดผม
             </p>
           </div>
 
           {!user && (
-            <div className="rounded-[32px] border border-red-100 bg-red-50 p-8 text-red-700">
-              กรุณาเข้าสู่ระบบก่อนดูประวัติการจอง
+            <div className="rounded-[32px] border border-stone-200 bg-white p-8 text-center shadow-sm">
+              <p className="text-stone-600">
+                กรุณาเข้าสู่ระบบก่อนดูรายการจองของคุณ
+              </p>
+
+              <Link
+                href="/login"
+                className="mt-5 inline-flex rounded-full bg-amber-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-900"
+              >
+                เข้าสู่ระบบ
+              </Link>
             </div>
           )}
 
@@ -161,6 +211,12 @@ export default function MyBookingsPage() {
             </div>
           )}
 
+          {message && (
+            <div className="mb-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+              {message}
+            </div>
+          )}
+
           {loading && (
             <div className="rounded-[32px] border border-stone-200 bg-white p-8 text-stone-600 shadow-sm">
               กำลังโหลดข้อมูลการจอง...
@@ -168,8 +224,15 @@ export default function MyBookingsPage() {
           )}
 
           {!loading && user && bookings.length === 0 && (
-            <div className="rounded-[32px] border border-stone-200 bg-white p-8 text-stone-600 shadow-sm">
-              ยังไม่มีประวัติการจอง
+            <div className="rounded-[32px] border border-stone-200 bg-white p-8 text-center shadow-sm">
+              <p className="text-stone-600">ยังไม่มีรายการจอง</p>
+
+              <Link
+                href="/booking"
+                className="mt-5 inline-flex rounded-full bg-amber-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-900"
+              >
+                ไปจองคิว
+              </Link>
             </div>
           )}
 
@@ -181,7 +244,7 @@ export default function MyBookingsPage() {
                   className="rounded-[32px] border border-stone-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
+                    <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-3">
                         <h3 className="text-2xl font-bold text-stone-950">
                           {booking.serviceName}
@@ -229,9 +292,23 @@ export default function MyBookingsPage() {
                       )}
                     </div>
 
-                    <div className="text-sm text-stone-400">
-                      จองเมื่อ{" "}
-                      {new Date(booking.createdAt).toLocaleDateString("th-TH")}
+                    <div className="flex flex-col gap-3 lg:items-end">
+                      <p className="text-sm text-stone-400">
+                        จองเมื่อ{" "}
+                        {new Date(booking.createdAt).toLocaleDateString(
+                          "th-TH"
+                        )}
+                      </p>
+
+                      {booking.status !== "cancelled" && (
+                        <button
+                          onClick={() => handleCancelBooking(booking._id)}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                          <Trash2 size={16} />
+                          ยกเลิกการจอง
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

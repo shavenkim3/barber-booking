@@ -1,12 +1,19 @@
+"use client";
+
 import Link from "next/link";
-import {
-  Scissors,
-  Sparkles,
-  Clock3,
-  ArrowRight,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Scissors, Sparkles, Clock3, ArrowRight } from "lucide-react";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+};
 
 export default function ServicesSection() {
+  const [user, setUser] = useState<User | null>(null);
+
   const services = [
     {
       icon: Scissors,
@@ -34,10 +41,18 @@ export default function ServicesSection() {
     },
   ];
 
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
   return (
     <section
       id="services"
-      className="relative overflow-hidden bg-gradient-to-b from-white to-stone-50 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
+      className="relative scroll-mt-24 overflow-hidden bg-gradient-to-b from-white to-stone-50 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
     >
       <div className="mx-auto max-w-7xl">
         <div className="text-center">
@@ -54,11 +69,15 @@ export default function ServicesSection() {
             ออกแบบให้จองง่าย ใช้งานสะดวก
             พร้อมราคาและระยะเวลาชัดเจน
           </p>
+
         </div>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => {
             const Icon = service.icon;
+            const bookingLink = user
+              ? `/booking?service=${encodeURIComponent(service.name)}`
+              : "/login";
 
             return (
               <div
@@ -95,7 +114,7 @@ export default function ServicesSection() {
                 </div>
 
                 <Link
-                  href="/booking"
+                  href={bookingLink}
                   className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
                 >
                   เลือกบริการ

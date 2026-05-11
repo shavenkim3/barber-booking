@@ -1,14 +1,32 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+};
 
 export default function HeroSection() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const bookingLink = user ? "/booking" : "/login";
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white to-stone-50 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
         <div className="text-center lg:text-left">
-          <span className="inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">
-            ระบบจองคิวร้านตัดผมออนไลน์
-          </span>
-
           <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-stone-950 sm:text-5xl lg:text-6xl">
             จองคิวตัดผม
             <br className="hidden sm:block" />
@@ -22,7 +40,7 @@ export default function HeroSection() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
             <Link
-              href="/booking"
+              href={bookingLink}
               className="rounded-full bg-amber-800 px-7 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-amber-900"
             >
               เริ่มจองคิว
@@ -39,6 +57,7 @@ export default function HeroSection() {
           <div className="mt-12 grid grid-cols-3 gap-4 rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:max-w-lg lg:max-w-xl">
             <div>
               <h3 className="text-2xl font-bold text-stone-950">500+</h3>
+
               <p className="mt-1 text-xs text-stone-500 sm:text-sm">
                 ลูกค้า
               </p>
@@ -46,6 +65,7 @@ export default function HeroSection() {
 
             <div>
               <h3 className="text-2xl font-bold text-stone-950">15+</h3>
+
               <p className="mt-1 text-xs text-stone-500 sm:text-sm">
                 ช่างมืออาชีพ
               </p>
@@ -53,6 +73,7 @@ export default function HeroSection() {
 
             <div>
               <h3 className="text-2xl font-bold text-stone-950">4.9</h3>
+
               <p className="mt-1 text-xs text-stone-500 sm:text-sm">
                 คะแนนรีวิว
               </p>

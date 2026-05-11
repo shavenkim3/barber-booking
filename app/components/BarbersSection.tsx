@@ -1,6 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+};
 
 export default function BarbersSection() {
+  const [user, setUser] = useState<User | null>(null);
+
   const barbers = [
     {
       name: "พี่เจมส์",
@@ -18,6 +30,14 @@ export default function BarbersSection() {
       experience: "ประสบการณ์ 4 ปี",
     },
   ];
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
 
   return (
     <section
@@ -41,39 +61,45 @@ export default function BarbersSection() {
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {barbers.map((barber, index) => (
-            <div
-              key={barber.name}
-              className="overflow-hidden rounded-[32px] border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="flex h-72 items-center justify-center bg-gradient-to-br from-amber-100 via-stone-200 to-amber-800">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/90 text-3xl font-bold text-amber-800 shadow-md">
-                  {index + 1}
+          {barbers.map((barber, index) => {
+            const bookingLink = user
+              ? `/booking?barber=${encodeURIComponent(barber.name)}`
+              : "/login";
+
+            return (
+              <div
+                key={barber.name}
+                className="overflow-hidden rounded-[32px] border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <div className="flex h-72 items-center justify-center bg-gradient-to-br from-amber-100 via-stone-200 to-amber-800">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/90 text-3xl font-bold text-amber-800 shadow-md">
+                    {index + 1}
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold text-stone-950">
+                    {barber.name}
+                  </h3>
+
+                  <p className="mt-2 font-medium text-amber-800">
+                    {barber.role}
+                  </p>
+
+                  <p className="mt-2 text-sm text-stone-500">
+                    {barber.experience}
+                  </p>
+
+                  <Link
+                    href={bookingLink}
+                    className="mt-6 block w-full rounded-full bg-amber-800 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-amber-900"
+                  >
+                    จองกับช่างคนนี้
+                  </Link>
                 </div>
               </div>
-
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-stone-950">
-                  {barber.name}
-                </h3>
-
-                <p className="mt-2 font-medium text-amber-800">
-                  {barber.role}
-                </p>
-
-                <p className="mt-2 text-sm text-stone-500">
-                  {barber.experience}
-                </p>
-
-                <Link
-                  href={`/booking?barber=${encodeURIComponent(barber.name)}`}
-                  className="mt-6 block w-full rounded-full bg-amber-800 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-amber-900"
-                >
-                  จองกับช่างคนนี้
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

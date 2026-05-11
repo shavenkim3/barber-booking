@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 
-export async function PATCH(
+const allowedStatus = ["pending", "confirmed", "completed", "cancelled"];
+
+export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -24,13 +26,6 @@ export async function PATCH(
         { status: 400 }
       );
     }
-
-    const allowedStatus = [
-      "pending",
-      "confirmed",
-      "completed",
-      "cancelled",
-    ];
 
     if (!allowedStatus.includes(status)) {
       return NextResponse.json(
@@ -69,4 +64,11 @@ export async function PATCH(
       { status: 500 }
     );
   }
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return PUT(req, { params });
 }
