@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Phone, X } from "lucide-react";
+import { Menu, Phone, X, ShieldCheck, Newspaper } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type User = {
@@ -9,6 +9,7 @@ type User = {
   name: string;
   email: string;
   phone?: string;
+  role?: "user" | "admin";
 };
 
 export default function Navbar() {
@@ -23,6 +24,7 @@ export default function Navbar() {
     }
   }, []);
 
+  const isAdmin = user?.role === "admin";
   const bookingLink = user ? "/booking" : "/login";
 
   function handleLogout() {
@@ -35,26 +37,58 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="text-xl font-bold text-stone-900 sm:text-2xl">
+        <Link
+          href="/"
+          className="shrink-0 text-xl font-bold text-stone-900 sm:text-2xl"
+        >
           Barber<span className="text-amber-700">Q</span>
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          <Link href="/" className="text-sm font-medium text-stone-600 hover:text-amber-800">
+          <Link
+            href="/"
+            className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+          >
             หน้าแรก
           </Link>
 
-          <Link href="/#services" className="text-sm font-medium text-stone-600 hover:text-amber-800">
+          <Link
+            href="/#services"
+            className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+          >
             บริการ
           </Link>
 
-          <Link href="/#barbers" className="text-sm font-medium text-stone-600 hover:text-amber-800">
+          <Link
+            href="/#barbers"
+            className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+          >
             ช่างตัดผม
           </Link>
 
-          <Link href={bookingLink} className="text-sm font-medium text-stone-600 hover:text-amber-800">
+          <Link
+            href={bookingLink}
+            className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+          >
             จองคิว
           </Link>
+
+          <Link
+            href="/news"
+            className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+          >
+            ข่าวสาร
+          </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-200"
+            >
+              <ShieldCheck size={16} />
+              จัดการข้อมูล
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
@@ -69,9 +103,18 @@ export default function Navbar() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-stone-900">
-                    {user.name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold leading-none text-stone-900">
+                      {user.name}
+                    </p>
+
+                    {isAdmin && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                        ADMIN
+                      </span>
+                    )}
+                  </div>
+
                   <p className="mt-1 text-xs text-stone-500">{user.email}</p>
 
                   {user.phone && (
@@ -85,20 +128,23 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100"
+                className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
               >
                 ออกจากระบบ
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-stone-600 hover:text-amber-800">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-stone-600 transition hover:text-amber-800"
+              >
                 เข้าสู่ระบบ
               </Link>
 
               <Link
                 href="/register"
-                className="rounded-full bg-amber-800 px-5 py-2 text-sm font-medium text-white hover:bg-amber-900"
+                className="rounded-full bg-amber-800 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900"
               >
                 สมัครสมาชิก
               </Link>
@@ -120,36 +166,100 @@ export default function Navbar() {
             <Link
               href="/profile"
               onClick={() => setOpenMenu(false)}
-              className="mb-4 block rounded-3xl border border-stone-200 bg-stone-50 p-4"
+              className="mb-4 block rounded-3xl border border-stone-200 bg-stone-50 p-4 transition hover:border-amber-300 hover:bg-amber-50"
             >
-              <p className="font-semibold text-stone-900">{user.name}</p>
-              <p className="mt-1 text-sm text-stone-500">{user.email}</p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-800 text-base font-bold text-white">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-semibold text-stone-900">
+                      {user.name}
+                    </p>
+
+                    {isAdmin && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                        ADMIN
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="truncate text-sm text-stone-500">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+
+              {user.phone && (
+                <div className="mt-3 flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm text-amber-800">
+                  <Phone size={16} />
+                  <span>{user.phone}</span>
+                </div>
+              )}
             </Link>
           )}
 
           <nav className="flex flex-col gap-2">
-            <Link onClick={() => setOpenMenu(false)} href="/" className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <Link
+              onClick={() => setOpenMenu(false)}
+              href="/"
+              className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
               หน้าแรก
             </Link>
 
-            <Link onClick={() => setOpenMenu(false)} href="/#services" className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <Link
+              onClick={() => setOpenMenu(false)}
+              href="/#services"
+              className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
               บริการ
             </Link>
 
-            <Link onClick={() => setOpenMenu(false)} href="/#barbers" className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <Link
+              onClick={() => setOpenMenu(false)}
+              href="/#barbers"
+              className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
               ช่างตัดผม
             </Link>
 
-            <Link onClick={() => setOpenMenu(false)} href={bookingLink} className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <Link
+              onClick={() => setOpenMenu(false)}
+              href={bookingLink}
+              className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
               จองคิว
             </Link>
+
+            <Link
+              onClick={() => setOpenMenu(false)}
+              href="/news"
+              className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
+              <Newspaper size={16} />
+              ข่าวสาร
+            </Link>
+
+            {isAdmin && (
+              <Link
+                onClick={() => setOpenMenu(false)}
+                href="/admin"
+                className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+              >
+                <ShieldCheck size={16} />
+                จัดการข้อมูล
+              </Link>
+            )}
           </nav>
 
           <div className="mt-4 border-t border-stone-200 pt-4">
             {user ? (
               <button
                 onClick={handleLogout}
-                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-700"
+                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
               >
                 ออกจากระบบ
               </button>
