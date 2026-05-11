@@ -90,17 +90,34 @@ export async function GET(req: Request) {
     await connectDB();
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
 
-    const filter = userId ? { userId } : {};
+    const userId = searchParams.get("userId");
+    const date = searchParams.get("date");
+    const barberName = searchParams.get("barberName");
+
+    const filter: {
+      userId?: string;
+      date?: string;
+      barberName?: string;
+      status?: { $ne: string };
+    } = {
+      status: { $ne: "cancelled" },
+    };
+
+    if (userId) filter.userId = userId;
+    if (date) filter.date = date;
+    if (barberName) filter.barberName = barberName;
 
     const bookings = await Booking.find(filter).sort({
       createdAt: -1,
     });
 
+    const bookedTimes = bookings.map((booking) => booking.time);
+
     return NextResponse.json(
       {
         bookings,
+        bookedTimes,
       },
       { status: 200 }
     );

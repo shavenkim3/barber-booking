@@ -178,7 +178,7 @@ export default function Navbar() {
 
             <Link
               onClick={() => setOpenMenu(false)}
-              href="/#services"
+              href="#services"
               className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
             >
               บริการ
@@ -186,7 +186,7 @@ export default function Navbar() {
 
             <Link
               onClick={() => setOpenMenu(false)}
-              href="/#barbers"
+              href="#barbers"
               className="rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
             >
               ช่างตัดผม

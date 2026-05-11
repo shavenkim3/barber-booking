@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarDays, CheckCircle, Clock, Scissors, UserRound } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  Mail,
+  MessageSquare,
+  Phone,
+  Scissors,
+  UserRound,
+} from "lucide-react";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -12,35 +22,44 @@ type User = {
   phone?: string;
 };
 
+type Service = {
+  name: string;
+  price: string;
+  duration: string;
+};
+
+const services: Service[] = [
+  { name: "ตัดผมชาย", price: "฿250", duration: "30 นาที" },
+  { name: "Fade Cut", price: "฿350", duration: "45 นาที" },
+  { name: "สระผม + เซ็ตทรง", price: "฿180", duration: "25 นาที" },
+];
+
+const barbers = ["พี่เจมส์", "พี่ไมค์", "พี่เดวิด"];
+
+const times = [
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+];
+
 export default function BookingPage() {
-  const services = [
-    { name: "ตัดผมชาย", price: "฿250", duration: "30 นาที" },
-    { name: "Fade Cut", price: "฿350", duration: "45 นาที" },
-    { name: "สระผม + เซ็ตทรง", price: "฿180", duration: "25 นาที" },
-  ];
-
-  const barbers = ["พี่เจมส์", "พี่ไมค์", "พี่เดวิด"];
-
-  const times = [
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-  ];
-
   const [user, setUser] = useState<User | null>(null);
-  const [selectedService, setSelectedService] = useState(services[0]);
+  const [selectedService, setSelectedService] = useState<Service>(services[0]);
   const [selectedBarber, setSelectedBarber] = useState(barbers[0]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [note, setNote] = useState("");
-
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingTimes, setLoadingTimes] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -48,7 +67,50 @@ export default function BookingPage() {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+
+    const params = new URLSearchParams(window.location.search);
+    const barberFromUrl = params.get("barber");
+
+    if (barberFromUrl && barbers.includes(barberFromUrl)) {
+      setSelectedBarber(barberFromUrl);
+    }
   }, []);
+
+  useEffect(() => {
+    async function fetchBookedTimes() {
+      if (!selectedDate || !selectedBarber) {
+        setBookedTimes([]);
+        return;
+      }
+
+      setLoadingTimes(true);
+
+      try {
+        const res = await fetch(
+          `/api/bookings?date=${encodeURIComponent(
+            selectedDate
+          )}&barberName=${encodeURIComponent(selectedBarber)}`
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const timesFromDB = data.bookedTimes || [];
+          setBookedTimes(timesFromDB);
+
+          if (timesFromDB.includes(selectedTime)) {
+            setSelectedTime("");
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoadingTimes(false);
+      }
+    }
+
+    fetchBookedTimes();
+  }, [selectedDate, selectedBarber, selectedTime]);
 
   async function handleBooking() {
     setMessage("");
@@ -58,13 +120,28 @@ export default function BookingPage() {
       return;
     }
 
-    if (!selectedDate || !selectedTime) {
-      setMessage("กรุณาเลือกวันที่และเวลา");
+    if (!selectedBarber) {
+      setMessage("กรุณาเลือกช่างตัดผม");
+      return;
+    }
+
+    if (!selectedDate) {
+      setMessage("กรุณาเลือกวันที่");
+      return;
+    }
+
+    if (!selectedTime) {
+      setMessage("กรุณาเลือกเวลา");
+      return;
+    }
+
+    if (bookedTimes.includes(selectedTime)) {
+      setMessage("เวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาอื่น");
       return;
     }
 
     if (!user.phone) {
-      setMessage("บัญชีนี้ยังไม่มีเบอร์โทร กรุณาสมัครหรือเข้าสู่ระบบด้วยบัญชีที่มีเบอร์โทร");
+      setMessage("บัญชีนี้ยังไม่มีเบอร์โทร กรุณาแก้ไขข้อมูลโปรไฟล์ก่อนจองคิว");
       return;
     }
 
@@ -95,20 +172,19 @@ export default function BookingPage() {
 
       if (!res.ok) {
         setMessage(data.message || "จองคิวไม่สำเร็จ");
-        setLoading(false);
         return;
       }
 
       setMessage("จองคิวสำเร็จ ระบบบันทึกข้อมูลเรียบร้อยแล้ว");
-      setSelectedDate("");
+      setBookedTimes((prev) => [...prev, selectedTime]);
       setSelectedTime("");
       setNote("");
     } catch (error) {
       console.log(error);
       setMessage("เกิดข้อผิดพลาดในการจองคิว");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -116,10 +192,7 @@ export default function BookingPage() {
       <Navbar />
 
       <section className="relative overflow-hidden bg-gradient-to-b from-white via-stone-50 to-amber-50/40 px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
-        <div className="absolute -right-24 top-20 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
-        <div className="absolute -left-24 bottom-10 h-72 w-72 rounded-full bg-stone-300/40 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl">
+        <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
             <span className="inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-800">
               Booking Appointment
@@ -130,12 +203,13 @@ export default function BookingPage() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
-              เลือกบริการ ช่างตัดผม และเวลาที่สะดวก ระบบจะบันทึกการจองลงฐานข้อมูลจริง
+              เลือกบริการ ช่างตัดผม และเวลาที่สะดวก
+              ระบบจะตรวจสอบเวลาที่ถูกจองจากฐานข้อมูลให้อัตโนมัติ
             </p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1.4fr_0.8fr]">
-            <div className="rounded-[36px] border border-stone-200 bg-white/90 p-5 shadow-xl shadow-stone-200/60 backdrop-blur sm:p-8">
+            <div className="rounded-[36px] border border-stone-200 bg-white p-5 shadow-xl shadow-stone-200/60 sm:p-8">
               <div>
                 <div className="flex items-center gap-2">
                   <Scissors size={18} className="text-amber-800" />
@@ -187,11 +261,17 @@ export default function BookingPage() {
 
                   <select
                     value={selectedBarber}
-                    onChange={(e) => setSelectedBarber(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedBarber(e.target.value);
+                      setSelectedTime("");
+                      setMessage("");
+                    }}
                     className="mt-3 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-700 outline-none focus:border-amber-800"
                   >
                     {barbers.map((barber) => (
-                      <option key={barber}>{barber}</option>
+                      <option key={barber} value={barber}>
+                        {barber}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -206,8 +286,13 @@ export default function BookingPage() {
 
                   <input
                     type="date"
+                    min={today}
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setSelectedTime("");
+                      setMessage("");
+                    }}
                     className="mt-3 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-700 outline-none focus:border-amber-800"
                   />
                 </div>
@@ -221,118 +306,145 @@ export default function BookingPage() {
                   </label>
                 </div>
 
+                {loadingTimes && (
+                  <p className="mt-3 text-sm text-stone-500">
+                    กำลังตรวจสอบเวลาที่ถูกจอง...
+                  </p>
+                )}
+
                 <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {times.map((time) => {
                     const active = selectedTime === time;
+                    const isBooked = bookedTimes.includes(time);
 
                     return (
                       <button
                         type="button"
                         key={time}
-                        onClick={() => setSelectedTime(time)}
+                        disabled={!selectedDate || isBooked}
+                        onClick={() => {
+                          setSelectedTime(time);
+                          setMessage("");
+                        }}
                         className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                          active
+                          isBooked
+                            ? "cursor-not-allowed border-stone-200 bg-stone-200 text-stone-400 line-through"
+                            : active
                             ? "border-amber-800 bg-amber-800 text-white"
                             : "border-stone-300 bg-white text-stone-700 hover:border-amber-800 hover:bg-amber-50"
-                        }`}
+                        } disabled:cursor-not-allowed disabled:opacity-60`}
                       >
                         {time} น.
+                        {isBooked && (
+                          <span className="ml-1 text-xs">(จองแล้ว)</span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
+
+                {!selectedDate && (
+                  <p className="mt-3 text-sm text-stone-500">
+                    กรุณาเลือกวันที่ก่อน ระบบจะแสดงเวลาที่ว่างให้เลือก
+                  </p>
+                )}
               </div>
 
               <div className="mt-6">
-                <label className="text-sm font-semibold text-stone-700">
-                  หมายเหตุเพิ่มเติม
-                </label>
+                <div className="flex items-center gap-2">
+                  <MessageSquare size={18} className="text-amber-800" />
+                  <label className="text-sm font-semibold text-stone-700">
+                    หมายเหตุเพิ่มเติม
+                  </label>
+                </div>
 
                 <textarea
-                  rows={4}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="เช่น ต้องการตัดสั้นด้านข้าง หรือมีทรงตัวอย่าง..."
+                  placeholder="เช่น อยากได้ทรงประมาณไหน หรือรายละเอียดเพิ่มเติม"
+                  rows={4}
                   className="mt-3 w-full resize-none rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-700 outline-none focus:border-amber-800"
                 />
               </div>
 
               {message && (
-                <p className="mt-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div className="mt-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
                   {message}
-                </p>
+                </div>
               )}
 
               <button
                 type="button"
                 onClick={handleBooking}
                 disabled={loading}
-                className="mt-8 w-full rounded-2xl bg-amber-800 py-4 text-sm font-bold text-white shadow-lg shadow-amber-900/20 transition hover:bg-amber-900 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-6 w-full rounded-2xl bg-amber-800 px-6 py-4 text-sm font-semibold text-white transition hover:bg-amber-900 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "กำลังบันทึกการจอง..." : "ยืนยันการจองคิว"}
               </button>
             </div>
 
-            <aside className="h-fit rounded-[36px] border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/60 lg:sticky lg:top-28">
-              <h2 className="text-2xl font-bold text-stone-950">
-                สรุปการจอง
-              </h2>
-
-              {user ? (
-                <div className="mt-5 rounded-3xl bg-stone-50 p-4">
-                  <p className="text-sm text-stone-500">ผู้จอง</p>
-                  <p className="mt-1 font-semibold text-stone-950">
-                    {user.name}
-                  </p>
-                  <p className="mt-1 text-sm text-stone-500">{user.email}</p>
-                  {user.phone && (
-                    <p className="mt-1 text-sm text-amber-800">
-                      โทร: {user.phone}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-5 rounded-3xl bg-red-50 p-4 text-sm text-red-700">
-                  กรุณาเข้าสู่ระบบก่อนจองคิว
-                </div>
-              )}
+            <aside className="rounded-[36px] border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/60">
+              <div className="flex items-center gap-2">
+                <CheckCircle size={20} className="text-amber-800" />
+                <h2 className="text-xl font-bold text-stone-950">
+                  สรุปการจอง
+                </h2>
+              </div>
 
               <div className="mt-6 space-y-4">
-                <div className="rounded-3xl bg-stone-50 p-4">
+                <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">บริการ</p>
                   <p className="mt-1 font-semibold text-stone-950">
-                    {selectedService.name} • {selectedService.price}
-                  </p>
-                  <p className="mt-1 text-sm text-stone-500">
-                    ระยะเวลา {selectedService.duration}
+                    {selectedService.name}
                   </p>
                 </div>
 
-                <div className="rounded-3xl bg-stone-50 p-4">
+                <div className="rounded-2xl bg-stone-50 p-4">
+                  <p className="text-sm text-stone-500">ราคา</p>
+                  <p className="mt-1 font-semibold text-amber-800">
+                    {selectedService.price}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-stone-50 p-4">
+                  <p className="text-sm text-stone-500">ระยะเวลา</p>
+                  <p className="mt-1 font-semibold text-stone-950">
+                    {selectedService.duration}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">ช่างตัดผม</p>
                   <p className="mt-1 font-semibold text-stone-950">
-                    {selectedBarber}
+                    {selectedBarber || "-"}
                   </p>
                 </div>
 
-                <div className="rounded-3xl bg-stone-50 p-4">
-                  <p className="text-sm text-stone-500">วันและเวลา</p>
+                <div className="rounded-2xl bg-stone-50 p-4">
+                  <p className="text-sm text-stone-500">วันที่และเวลา</p>
                   <p className="mt-1 font-semibold text-stone-950">
-                    {selectedDate || "ยังไม่ได้เลือกวันที่"}{" "}
+                    {selectedDate || "-"}{" "}
                     {selectedTime ? `• ${selectedTime} น.` : ""}
                   </p>
                 </div>
-              </div>
 
-              <div className="mt-6 rounded-3xl bg-amber-50 p-5">
-                <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
-                  <CheckCircle size={16} />
-                  หมายเหตุ
-                </p>
+                {user && (
+                  <div className="rounded-2xl bg-amber-50 p-4">
+                    <p className="font-semibold text-stone-950">{user.name}</p>
 
-                <p className="mt-2 text-sm leading-6 text-amber-900/80">
-                  กรุณามาก่อนเวลานัดประมาณ 5-10 นาที เพื่อให้ร้านจัดคิวได้สะดวก
-                </p>
+                    <p className="mt-2 flex items-center gap-2 text-sm text-stone-600">
+                      <Mail size={15} />
+                      {user.email}
+                    </p>
+
+                    {user.phone && (
+                      <p className="mt-2 flex items-center gap-2 text-sm text-stone-600">
+                        <Phone size={15} />
+                        {user.phone}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </aside>
           </div>
