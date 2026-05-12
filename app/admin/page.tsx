@@ -1,16 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Clock,
+  History,
   Mail,
+  Newspaper,
   Phone,
   Scissors,
   Search,
   ShieldCheck,
   UserRound,
-  History,
 } from "lucide-react";
 
 import Navbar from "../components/Navbar";
@@ -163,9 +165,15 @@ export default function AdminPage() {
 
   const totalBookings = bookings.length;
   const pendingBookings = bookings.filter((b) => b.status === "pending").length;
-  const confirmedBookings = bookings.filter((b) => b.status === "confirmed").length;
-  const completedBookings = bookings.filter((b) => b.status === "completed").length;
-  const cancelledBookings = bookings.filter((b) => b.status === "cancelled").length;
+  const confirmedBookings = bookings.filter(
+    (b) => b.status === "confirmed"
+  ).length;
+  const completedBookings = bookings.filter(
+    (b) => b.status === "completed"
+  ).length;
+  const cancelledBookings = bookings.filter(
+    (b) => b.status === "cancelled"
+  ).length;
 
   return (
     <main className="min-h-screen bg-stone-50">
@@ -181,11 +189,11 @@ export default function AdminPage() {
               </span>
 
               <h1 className="mt-5 text-4xl font-bold tracking-tight text-stone-950 sm:text-5xl">
-                จัดการรายการจองทั้งหมด
+                จัดการข้อมูลร้าน
               </h1>
 
               <p className="mt-4 max-w-2xl text-stone-600">
-                ดูรายการจองปัจจุบัน ประวัติย้อนหลัง รายละเอียดลูกค้า และจัดการสถานะการจอง
+                จัดการรายการจอง ประวัติย้อนหลัง และข่าวสารของร้านตัดผม
               </p>
             </div>
 
@@ -197,12 +205,69 @@ export default function AdminPage() {
             )}
           </div>
 
+          <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_1fr]">
+            <div className="rounded-[32px] border border-stone-200 bg-white p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+                  <CalendarDays size={28} />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-950">
+                    จัดการการจอง
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-stone-500">
+                    ดูรายการจองทั้งหมด อัปเดตสถานะ และตรวจสอบประวัติย้อนหลัง
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/admin/news"
+              className="group rounded-[32px] border border-amber-200 bg-gradient-to-br from-amber-800 to-stone-950 p-6 text-white shadow-lg shadow-amber-900/20 transition hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white">
+                  <Newspaper size={28} />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold">จัดการข่าวสาร</h2>
+                  <p className="mt-2 text-sm leading-6 text-white/75">
+                    เพิ่ม แก้ไข ลบข่าวสาร โปรโมชัน และประกาศของร้าน
+                  </p>
+
+                  <span className="mt-5 inline-flex rounded-full bg-white px-5 py-2 text-sm font-semibold text-amber-800 transition group-hover:bg-amber-100">
+                    ไปหน้าจัดการข่าวสาร
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
             <SummaryCard title="ทั้งหมด" value={totalBookings} />
-            <SummaryCard title="รอการยืนยัน" value={pendingBookings} color="text-amber-800" />
-            <SummaryCard title="ยืนยันแล้ว" value={confirmedBookings} color="text-green-700" />
-            <SummaryCard title="เสร็จสิ้น" value={completedBookings} color="text-stone-800" />
-            <SummaryCard title="ยกเลิกแล้ว" value={cancelledBookings} color="text-red-700" />
+            <SummaryCard
+              title="รอการยืนยัน"
+              value={pendingBookings}
+              color="text-amber-800"
+            />
+            <SummaryCard
+              title="ยืนยันแล้ว"
+              value={confirmedBookings}
+              color="text-green-700"
+            />
+            <SummaryCard
+              title="เสร็จสิ้น"
+              value={completedBookings}
+              color="text-stone-800"
+            />
+            <SummaryCard
+              title="ยกเลิกแล้ว"
+              value={cancelledBookings}
+              color="text-red-700"
+            />
           </div>
 
           <div className="mt-8 rounded-[32px] border border-stone-200 bg-white p-5 shadow-sm">
@@ -302,10 +367,26 @@ export default function AdminPage() {
                       </p>
 
                       <div className="mt-5 grid gap-3 text-sm text-stone-600 sm:grid-cols-2 lg:grid-cols-4">
-                        <InfoBox icon={<UserRound size={16} />} label="ลูกค้า" value={booking.customerName} />
-                        <InfoBox icon={<Scissors size={16} />} label="ช่าง" value={booking.barberName} />
-                        <InfoBox icon={<CalendarDays size={16} />} label="วันที่" value={booking.date} />
-                        <InfoBox icon={<Clock size={16} />} label="เวลา" value={`${booking.time} น.`} />
+                        <InfoBox
+                          icon={<UserRound size={16} />}
+                          label="ลูกค้า"
+                          value={booking.customerName}
+                        />
+                        <InfoBox
+                          icon={<Scissors size={16} />}
+                          label="ช่าง"
+                          value={booking.barberName}
+                        />
+                        <InfoBox
+                          icon={<CalendarDays size={16} />}
+                          label="วันที่"
+                          value={booking.date}
+                        />
+                        <InfoBox
+                          icon={<Clock size={16} />}
+                          label="เวลา"
+                          value={`${booking.time} น.`}
+                        />
                       </div>
 
                       <div className="mt-4 grid gap-3 text-sm text-stone-600 md:grid-cols-2">
@@ -342,7 +423,9 @@ export default function AdminPage() {
 
                       <div className="mt-3 grid gap-2">
                         <button
-                          onClick={() => updateStatus(booking._id, "confirmed")}
+                          onClick={() =>
+                            updateStatus(booking._id, "confirmed")
+                          }
                           disabled={booking.status === "confirmed"}
                           className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -350,7 +433,9 @@ export default function AdminPage() {
                         </button>
 
                         <button
-                          onClick={() => updateStatus(booking._id, "completed")}
+                          onClick={() =>
+                            updateStatus(booking._id, "completed")
+                          }
                           disabled={booking.status === "completed"}
                           className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -358,7 +443,9 @@ export default function AdminPage() {
                         </button>
 
                         <button
-                          onClick={() => updateStatus(booking._id, "cancelled")}
+                          onClick={() =>
+                            updateStatus(booking._id, "cancelled")
+                          }
                           disabled={booking.status === "cancelled"}
                           className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >

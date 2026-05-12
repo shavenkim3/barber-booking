@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  ArrowLeft,
   Edit,
   ImageIcon,
   Newspaper,
@@ -95,6 +97,7 @@ export default function AdminNewsPage() {
 
   function handleEdit(news: News) {
     setEditingId(news._id);
+
     setFormData({
       title: news.title,
       category: news.category,
@@ -103,7 +106,10 @@ export default function AdminNewsPage() {
       isFeatured: news.isFeatured,
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function handleCancelEdit() {
@@ -138,8 +144,10 @@ export default function AdminNewsPage() {
       }
 
       setMessage(editingId ? "แก้ไขข่าวสารสำเร็จ" : "เพิ่มข่าวสารสำเร็จ");
+
       setFormData(emptyForm);
       setEditingId("");
+
       fetchNews();
     } catch (error) {
       console.log(error);
@@ -151,6 +159,7 @@ export default function AdminNewsPage() {
 
   async function handleDelete(id: string) {
     const confirmDelete = confirm("ต้องการลบข่าวสารนี้ใช่ไหม?");
+
     if (!confirmDelete) return;
 
     try {
@@ -166,6 +175,7 @@ export default function AdminNewsPage() {
       }
 
       setNewsList((prev) => prev.filter((news) => news._id !== id));
+
       setMessage("ลบข่าวสารสำเร็จ");
     } catch (error) {
       console.log(error);
@@ -180,6 +190,14 @@ export default function AdminNewsPage() {
       <section className="bg-gradient-to-b from-white via-stone-50 to-amber-50/40 px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10">
+            <Link
+              href="/admin"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 shadow-sm transition hover:bg-stone-100"
+            >
+              <ArrowLeft size={18} />
+              กลับไปหน้าจัดการข้อมูล
+            </Link>
+
             <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-800">
               <Newspaper size={16} />
               News Management
@@ -206,7 +224,7 @@ export default function AdminNewsPage() {
                   </h2>
 
                   <p className="mt-1 text-sm text-stone-500">
-                    รูปภาพใช้เป็น URL รูป เช่น รูปจาก Cloudinary หรือ Unsplash
+                    ใส่ URL รูปภาพจากอินเทอร์เน็ตหรือ Cloudinary
                   </p>
                 </div>
 
@@ -214,7 +232,7 @@ export default function AdminNewsPage() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="rounded-full bg-stone-100 p-2 text-stone-600 hover:bg-stone-200"
+                    className="rounded-full bg-stone-100 p-2 text-stone-600 transition hover:bg-stone-200"
                   >
                     <X size={18} />
                   </button>
@@ -232,7 +250,7 @@ export default function AdminNewsPage() {
                     value={formData.title}
                     onChange={handleChange}
                     placeholder="เช่น โปรโมชันลด 15%"
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-amber-800"
+                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none transition focus:border-amber-800"
                   />
                 </div>
 
@@ -245,8 +263,8 @@ export default function AdminNewsPage() {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    placeholder="เช่น Promotion, ประกาศ, บริการใหม่"
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-amber-800"
+                    placeholder="เช่น Promotion หรือ ประกาศ"
+                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none transition focus:border-amber-800"
                   />
                 </div>
 
@@ -261,7 +279,7 @@ export default function AdminNewsPage() {
                     onChange={handleChange}
                     rows={5}
                     placeholder="รายละเอียดข่าวสาร..."
-                    className="w-full resize-none rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-amber-800"
+                    className="w-full resize-none rounded-2xl border border-stone-300 px-4 py-3 outline-none transition focus:border-amber-800"
                   />
                 </div>
 
@@ -275,7 +293,7 @@ export default function AdminNewsPage() {
                     value={formData.imageUrl}
                     onChange={handleChange}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-amber-800"
+                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none transition focus:border-amber-800"
                   />
                 </div>
 
@@ -313,9 +331,10 @@ export default function AdminNewsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-800 px-6 py-4 text-sm font-semibold text-white transition hover:bg-amber-900 disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-800 px-6 py-4 text-sm font-semibold text-white transition hover:bg-amber-900 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {editingId ? <Save size={18} /> : <Plus size={18} />}
+
                   {saving
                     ? "กำลังบันทึก..."
                     : editingId
@@ -388,7 +407,7 @@ export default function AdminNewsPage() {
                       <div className="mt-5 grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleEdit(news)}
-                          className="flex items-center justify-center gap-2 rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white hover:bg-stone-800"
+                          className="flex items-center justify-center gap-2 rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
                         >
                           <Edit size={16} />
                           แก้ไข
@@ -396,7 +415,7 @@ export default function AdminNewsPage() {
 
                         <button
                           onClick={() => handleDelete(news._id)}
-                          className="flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700"
+                          className="flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
                         >
                           <Trash2 size={16} />
                           ลบ

@@ -30,22 +30,13 @@ type Service = {
 
 const services: Service[] = [
   { name: "ตัดผมชาย", price: "฿250", duration: "30 นาที" },
-  { name: "Fade Cut", price: "฿350", duration: "45 นาที" },
+  { name: "ดัดผม", price: "฿690", duration: "90 นาที" },
   { name: "สระผม + เซ็ตทรง", price: "฿180", duration: "25 นาที" },
 ];
 
 const barbers = ["พี่เจมส์", "พี่ไมค์", "พี่เดวิด"];
 
-const times = [
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-];
+const times = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 export default function BookingPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -69,10 +60,21 @@ export default function BookingPage() {
     }
 
     const params = new URLSearchParams(window.location.search);
-    const barberFromUrl = params.get("barber");
 
+    const barberFromUrl = params.get("barber");
     if (barberFromUrl && barbers.includes(barberFromUrl)) {
       setSelectedBarber(barberFromUrl);
+    }
+
+    const serviceFromUrl = params.get("service");
+    if (serviceFromUrl) {
+      const foundService = services.find(
+        (service) => service.name === serviceFromUrl
+      );
+
+      if (foundService) {
+        setSelectedService(foundService);
+      }
     }
   }, []);
 
@@ -115,34 +117,17 @@ export default function BookingPage() {
   async function handleBooking() {
     setMessage("");
 
-    if (!user) {
-      setMessage("กรุณาเข้าสู่ระบบก่อนจองคิว");
-      return;
-    }
-
-    if (!selectedBarber) {
-      setMessage("กรุณาเลือกช่างตัดผม");
-      return;
-    }
-
-    if (!selectedDate) {
-      setMessage("กรุณาเลือกวันที่");
-      return;
-    }
-
-    if (!selectedTime) {
-      setMessage("กรุณาเลือกเวลา");
-      return;
-    }
+    if (!user) return setMessage("กรุณาเข้าสู่ระบบก่อนจองคิว");
+    if (!selectedBarber) return setMessage("กรุณาเลือกช่างตัดผม");
+    if (!selectedDate) return setMessage("กรุณาเลือกวันที่");
+    if (!selectedTime) return setMessage("กรุณาเลือกเวลา");
 
     if (bookedTimes.includes(selectedTime)) {
-      setMessage("เวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาอื่น");
-      return;
+      return setMessage("เวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาอื่น");
     }
 
     if (!user.phone) {
-      setMessage("บัญชีนี้ยังไม่มีเบอร์โทร กรุณาแก้ไขข้อมูลโปรไฟล์ก่อนจองคิว");
-      return;
+      return setMessage("บัญชีนี้ยังไม่มีเบอร์โทร กรุณาแก้ไขข้อมูลโปรไฟล์ก่อนจองคิว");
     }
 
     setLoading(true);
@@ -203,8 +188,7 @@ export default function BookingPage() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
-              เลือกบริการ ช่างตัดผม และเวลาที่สะดวก
-              ระบบจะตรวจสอบเวลาที่ถูกจองจากฐานข้อมูลให้อัตโนมัติ
+              เลือกบริการ ช่างตัดผม และเวลาที่สะดวก ระบบจะตรวจสอบเวลาที่ถูกจองให้อัตโนมัติ
             </p>
           </div>
 
@@ -226,24 +210,19 @@ export default function BookingPage() {
                       <button
                         type="button"
                         key={service.name}
-                        onClick={() => setSelectedService(service)}
+                        onClick={() => {
+                          setSelectedService(service);
+                          setMessage("");
+                        }}
                         className={`rounded-3xl border p-5 text-left transition ${
                           active
                             ? "border-amber-800 bg-amber-50 shadow-md"
                             : "border-stone-200 bg-stone-50 hover:border-amber-700 hover:bg-amber-50"
                         }`}
                       >
-                        <h3 className="font-bold text-stone-950">
-                          {service.name}
-                        </h3>
-
-                        <p className="mt-2 text-sm text-stone-500">
-                          {service.duration}
-                        </p>
-
-                        <p className="mt-4 text-xl font-bold text-amber-800">
-                          {service.price}
-                        </p>
+                        <h3 className="font-bold text-stone-950">{service.name}</h3>
+                        <p className="mt-2 text-sm text-stone-500">{service.duration}</p>
+                        <p className="mt-4 text-xl font-bold text-amber-800">{service.price}</p>
                       </button>
                     );
                   })}
@@ -335,9 +314,7 @@ export default function BookingPage() {
                         } disabled:cursor-not-allowed disabled:opacity-60`}
                       >
                         {time} น.
-                        {isBooked && (
-                          <span className="ml-1 text-xs">(จองแล้ว)</span>
-                        )}
+                        {isBooked && <span className="ml-1 text-xs">(จองแล้ว)</span>}
                       </button>
                     );
                   })}
@@ -386,45 +363,34 @@ export default function BookingPage() {
             <aside className="rounded-[36px] border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/60">
               <div className="flex items-center gap-2">
                 <CheckCircle size={20} className="text-amber-800" />
-                <h2 className="text-xl font-bold text-stone-950">
-                  สรุปการจอง
-                </h2>
+                <h2 className="text-xl font-bold text-stone-950">สรุปการจอง</h2>
               </div>
 
               <div className="mt-6 space-y-4">
                 <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">บริการ</p>
-                  <p className="mt-1 font-semibold text-stone-950">
-                    {selectedService.name}
-                  </p>
+                  <p className="mt-1 font-semibold text-stone-950">{selectedService.name}</p>
                 </div>
 
                 <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">ราคา</p>
-                  <p className="mt-1 font-semibold text-amber-800">
-                    {selectedService.price}
-                  </p>
+                  <p className="mt-1 font-semibold text-amber-800">{selectedService.price}</p>
                 </div>
 
                 <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">ระยะเวลา</p>
-                  <p className="mt-1 font-semibold text-stone-950">
-                    {selectedService.duration}
-                  </p>
+                  <p className="mt-1 font-semibold text-stone-950">{selectedService.duration}</p>
                 </div>
 
                 <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">ช่างตัดผม</p>
-                  <p className="mt-1 font-semibold text-stone-950">
-                    {selectedBarber || "-"}
-                  </p>
+                  <p className="mt-1 font-semibold text-stone-950">{selectedBarber}</p>
                 </div>
 
                 <div className="rounded-2xl bg-stone-50 p-4">
                   <p className="text-sm text-stone-500">วันที่และเวลา</p>
                   <p className="mt-1 font-semibold text-stone-950">
-                    {selectedDate || "-"}{" "}
-                    {selectedTime ? `• ${selectedTime} น.` : ""}
+                    {selectedDate || "-"} {selectedTime ? `• ${selectedTime} น.` : ""}
                   </p>
                 </div>
 

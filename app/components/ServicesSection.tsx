@@ -11,10 +11,18 @@ type User = {
   phone?: string;
 };
 
+type Service = {
+  icon: typeof Scissors;
+  name: string;
+  price: string;
+  duration: string;
+  description: string;
+};
+
 export default function ServicesSection() {
   const [user, setUser] = useState<User | null>(null);
 
-  const services = [
+  const services: Service[] = [
     {
       icon: Scissors,
       name: "ตัดผมชาย",
@@ -25,19 +33,18 @@ export default function ServicesSection() {
     },
     {
       icon: Sparkles,
-      name: "Fade Cut",
-      price: "฿350",
-      duration: "45 นาที",
+      name: "ดัดผม",
+      price: "฿690",
+      duration: "90 นาที",
       description:
-        "ตัดเฟดเนียนละเอียด เหมาะสำหรับลุคทันสมัยและดูสะอาด",
+        "บริการดัดผมเพิ่มวอลลุ่มและลอนผม ช่วยให้ทรงผมดูมีสไตล์และจัดทรงง่ายขึ้น",
     },
     {
       icon: Sparkles,
       name: "สระผม + เซ็ตทรง",
       price: "฿180",
       duration: "25 นาที",
-      description:
-        "สระผมพร้อมเซ็ตทรงให้พร้อมออกไปทำงานหรือออกงาน",
+      description: "สระผมพร้อมเซ็ตทรงให้พร้อมออกไปทำงานหรือออกงาน",
     },
   ];
 
@@ -65,19 +72,20 @@ export default function ServicesSection() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-stone-600 sm:text-lg">
-            บริการตัดผมและดูแลทรงผมสำหรับผู้ชาย
-            ออกแบบให้จองง่าย ใช้งานสะดวก
-            พร้อมราคาและระยะเวลาชัดเจน
+            บริการตัดผมและดูแลทรงผมสำหรับผู้ชาย ออกแบบให้จองง่าย
+            ใช้งานสะดวก พร้อมราคาและระยะเวลาชัดเจน
           </p>
-
         </div>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => {
             const Icon = service.icon;
+
             const bookingLink = user
               ? `/booking?service=${encodeURIComponent(service.name)}`
-              : "/login";
+              : `/login?redirect=${encodeURIComponent(
+                  `/booking?service=${encodeURIComponent(service.name)}`
+                )}`;
 
             return (
               <div
