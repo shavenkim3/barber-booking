@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Eye, EyeOff, KeyRound, Lock, Scissors } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
             </p>
 
             <p className="mt-3 rounded-2xl bg-stone-50 px-4 py-2 text-xs text-stone-500">
-              {email}
+              {email || "ไม่พบอีเมล กรุณาขอ OTP ใหม่อีกครั้ง"}
             </p>
           </div>
 
@@ -123,7 +123,9 @@ export default function ResetPasswordPage() {
                   รหัส OTP
                 </label>
 
-                <span className="text-xs text-stone-400">{otp.length}/6 หลัก</span>
+                <span className="text-xs text-stone-400">
+                  {otp.length}/6 หลัก
+                </span>
               </div>
 
               <input
@@ -156,6 +158,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-stone-400 transition hover:text-stone-700"
+                  aria-label="แสดงหรือซ่อนรหัสผ่าน"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -186,5 +189,19 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-stone-50">
+          <p className="text-sm text-stone-500">กำลังโหลด...</p>
+        </main>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
